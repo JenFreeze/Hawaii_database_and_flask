@@ -23,6 +23,10 @@ Base.prepare(autoload_with=engine)
 Measurement = Base.classes.measurement
 Station = Base.classes.station
 
+# Save dates as variables for use in routes
+latest_date = dt.date(2017, 8, 23)
+year_ago = latest_date - dt.timedelta(days=365)
+
 # Create our session (link) from Python to the DB
 session = Session(engine)
 
@@ -36,6 +40,7 @@ app = Flask(__name__)
 #################################################
 # Flask Routes
 #################################################
+# Create home page route
 @app.route("/")
 def welcome():
     """List all available routes"""
@@ -48,14 +53,16 @@ def welcome():
         f"/api/v1.0/2015-08-15/2017-08-23"
     )
 
+
+# Create precipitation page to pull measurements from the last 12 months and put into dictionary
 @app.route("/api/v1.0/precipitation")
 def precipitation():
-    latest_date = dt.date(2017, 8, 23)
-    year_ago = latest_date - dt.timedelta(days=365)
+    """Use query from climate_starter.py file"""
     precipitation = session.query(Measurement.date, Measurement.prcp).\
     filter(Measurement.date > year_ago).all()
     session.close()
 
+    """Enter information into dictionary/list""" 
     results = []
     for date, prcp in precipitation:
         results_dict = {}
@@ -65,6 +72,8 @@ def precipitation():
     
     return jsonify(results)
 
+
+# Create stations page to pull list of station names
 @app.route("/api/v1.0/stations")
 def stations():
     stations = session.query(Station.station).all()
@@ -73,10 +82,12 @@ def stations():
 
     return jsonify(names)
 
+
+# Create tobs page to show temperatures from last 12 months for most active station
 @app.route("/api/v1.0/tobs")
 def tobs():
-    latest_date = dt.date(2017, 8, 23)
-    year_ago = latest_date - dt.timedelta(days=365)
+
+    """Use query from climate_starter.py file"""
     sel = [Measurement.station, func.count(Measurement.station)]
     station_counts = session.query(*sel).\
         group_by(Measurement.station).\
@@ -87,6 +98,7 @@ def tobs():
         filter(Measurement.date >= year_ago).all()
     session.close()
 
+    """Enter information into dictionary/list"""
     tobs_results = []
     for date, tobs in most_active_info:
         tobs_results_dict = {}
@@ -96,6 +108,8 @@ def tobs():
     
     return jsonify(tobs_results)
 
+
+# Create pages to show min, max, and avg temps based on user-input start date
 @app.route("/api/v1.0/<start>")
 def tobs_start(start):
 
@@ -107,9 +121,9 @@ def tobs_start(start):
         group_by(Measurement.date).all()
     session.close()
 
+    """Enter information into dictionary/list"""
     date_results = []
     for date, min, max, avg in results:
-
             date_results_dict = {}
             date_results_dict["date"] = date
             date_results_dict["min"] = min
@@ -119,9 +133,13 @@ def tobs_start(start):
     
     if date_results:
         return jsonify(date_results)
+    
+    # Include error message if date isn't included in dataset or is in incorrect format
     else:
         return jsonify({"error": f"Dates not found or not in correct format of YYYY-MM-DD"}), 404
 
+
+# Create pages to show min, max, and avg temps based on user-input start and end date
 @app.route("/api/v1.0/<start>/<end>")
 def tobs_end(start, end):
 
@@ -134,6 +152,7 @@ def tobs_end(start, end):
         group_by(Measurement.date).all()
     session.close()
 
+    """Enter information into dictionary/list"""
     date_results = []
     for date, min, max, avg in results:
 
@@ -146,6 +165,8 @@ def tobs_end(start, end):
     
     if date_results:
         return jsonify(date_results)
+    
+    # Include error message if date isn't included in dataset or is in incorrect format
     else:
         return jsonify({"error": f"Dates not found or not in correct format of YYYY-MM-DD"}), 404
 
