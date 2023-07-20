@@ -1,9 +1,8 @@
-# sqlalchemy-challenge
-Module 10 Challenge - SQL Alchemy
+# Using SQLAlchemy to Analyze Data and Develop Flask API
+#### Skills Used: SQLAlchemy, Flask, Python, Matplotlib
 
 ## Overview
-#
-We're planning a vacation to Hawaii! In this project, we performed analyses to learn more about the climate in the area and develop a climate api for sharing this information.
+We're planning a vacation to Hawaii! For this project, our goal is to learn more about the climate in the area and develop a climate Flask API for easy access to this information.
 
 ### Precipitation Analysis
 - First we found the most recent 12 months of data to perform our analysis.
